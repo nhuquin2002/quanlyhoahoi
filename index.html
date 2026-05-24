@@ -10,32 +10,14 @@ body {
   font-family: Arial, sans-serif;
   background: linear-gradient(to bottom, #fff7fb, #ffeaf4);
   margin: 0;
-  padding: 15px;
+  padding: 12px;
 }
 
 h1 {
   text-align: center;
   color: #d63384;
-}
-
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin: 15px 0;
-}
-
-.stat {
-  background: white;
-  border-radius: 16px;
-  padding: 12px;
-  text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-
-.stat b {
-  font-size: 20px;
-  color: #d63384;
+  margin-bottom: 12px;
+  font-size: 24px;
 }
 
 input, button {
@@ -55,46 +37,71 @@ button {
   font-weight: bold;
 }
 
-.loading {
+.dashboard {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.stat {
+  width: 180px;
+  background: white;
+  padding: 10px;
+  border-radius: 14px;
   text-align: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  font-size: 14px;
+}
+
+.stat b {
+  display: block;
   color: #d63384;
-  display: none;
-  margin: 10px 0;
+  font-size: 18px;
 }
 
 .flower-card {
   background: white;
-  border-radius: 18px;
-  padding: 15px;
-  margin-top: 15px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
-
-.flower-card img {
-  width: 120px;
-  height: 120px;
-  object-fit: cover;
   border-radius: 16px;
-  display: block;
-  margin: 0 auto 10px;
+  padding: 12px;
+  margin-top: 12px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
 }
 
-.member {
-  background: #ffe3ef;
-  padding: 8px;
-  margin-top: 6px;
-  border-radius: 10px;
+.flower-top {
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
-.count {
+.flower-top img {
+  width: 85px;
+  height: 85px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.flower-info h3 {
+  margin: 0;
+  color: #d63384;
+}
+
+.flower-info p {
+  margin: 4px 0;
   color: #666;
   font-size: 14px;
 }
 
-@media (max-width: 600px) {
-  .dashboard {
-    grid-template-columns: 1fr;
-  }
+.member-list {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.loading {
+  text-align: center;
+  color: #d63384;
+  display: none;
 }
 </style>
 </head>
@@ -102,26 +109,15 @@ button {
 
 <h1>🌸 FLOWER Dashboard 🌸</h1>
 
+<input id="searchInput" placeholder="🔍 Tìm kiếm hoa hoặc hội viên">
+
 <div class="dashboard">
-  <div class="stat">
-    <div>Tổng hoa</div>
-    <b id="totalFlowers">0</b>
-  </div>
-  <div class="stat">
-    <div>Tổng hội viên</div>
-    <b id="totalMembers">0</b>
-  </div>
-  <div class="stat">
-    <div>Top hoa</div>
-    <b id="topFlower">-</b>
-  </div>
+  <div class="stat">Hội viên<b id="totalMembers">0</b></div>
 </div>
 
 <input id="flowerName" placeholder="Nhập tên hoa">
 <input type="file" id="flowerImage" accept="image/*">
 <button onclick="addFlower()">➕ Thêm loại hoa</button>
-
-<input id="searchInput" placeholder="🔍 Tìm kiếm theo hoa hoặc hội viên">
 
 <div class="loading" id="loading">⏳ Đang tải ảnh...</div>
 
@@ -152,6 +148,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+let currentUser = localStorage.getItem("flowerUser");
+
+if (!currentUser) {
+  currentUser = prompt("Nhập tên hội viên của bạn:");
+  if (currentUser) {
+    localStorage.setItem("flowerUser", currentUser);
+  }
+}
+
 document.getElementById("searchInput").addEventListener("input", loadFlowers);
 
 async function compressImage(file) {
@@ -163,10 +168,9 @@ async function compressImage(file) {
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const maxWidth = 800;
-      const scale = maxWidth / img.width;
+      const scale = 600 / img.width;
 
-      canvas.width = maxWidth;
+      canvas.width = 600;
       canvas.height = img.height * scale;
 
       const ctx = canvas.getContext("2d");
@@ -199,15 +203,15 @@ async function uploadToCloudinary(file) {
 }
 
 window.addFlower = async function () {
-  const name = document.getElementById("flowerName").value.trim();
-  const file = document.getElementById("flowerImage").files[0];
+  const name = flowerName.value.trim();
+  const file = flowerImage.files[0];
 
   if (!name || !file) {
-    alert("Nhập tên hoa và chọn ảnh");
+    alert("Nhập tên hoa + chọn ảnh");
     return;
   }
 
-  document.getElementById("loading").style.display = "block";
+  loading.style.display = "block";
 
   const imageUrl = await uploadToCloudinary(file);
 
@@ -217,46 +221,36 @@ window.addFlower = async function () {
     members: []
   });
 
-  document.getElementById("flowerName").value = "";
-  document.getElementById("flowerImage").value = "";
-  document.getElementById("loading").style.display = "none";
+  flowerName.value = "";
+  flowerImage.value = "";
+  loading.style.display = "none";
 
   loadFlowers();
 };
 
 window.joinFlower = async function(id) {
-  const name = prompt("Tên của bạn:");
-  if (!name) return;
-
   await updateDoc(doc(db, "flowers", id), {
-    members: arrayUnion(name)
+    members: arrayUnion(currentUser)
   });
 
   loadFlowers();
 };
 
 window.leaveFlower = async function(id) {
-  const name = prompt("Tên cần xóa:");
-  if (!name) return;
-
   await updateDoc(doc(db, "flowers", id), {
-    members: arrayRemove(name)
+    members: arrayRemove(currentUser)
   });
 
   loadFlowers();
 };
 
 async function loadFlowers() {
-  const flowersDiv = document.getElementById("flowers");
-  flowersDiv.innerHTML = "";
+  flowers.innerHTML = "";
 
-  const search = document.getElementById("searchInput").value.toLowerCase().trim();
+  const search = searchInput.value.toLowerCase().trim();
   const snapshot = await getDocs(collection(db, "flowers"));
 
   let allMembers = new Set();
-  let topName = "-";
-  let topCount = 0;
-  let total = 0;
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
@@ -271,39 +265,34 @@ async function loadFlowers() {
       !memberMatch
     ) return;
 
-    total++;
+    (data.members || []).forEach(m => allMembers.add(m));
 
     const count = (data.members || []).length;
-
-    if (count > topCount) {
-      topCount = count;
-      topName = data.name;
-    }
-
-    (data.members || []).forEach(m => allMembers.add(m));
 
     const div = document.createElement("div");
     div.className = "flower-card";
 
     div.innerHTML = `
-      <img src="${data.image}" alt="${data.name}">
-      <h3>${data.name}</h3>
-      <div class="count">${count} hội viên đang có</div>
+      <div class="flower-top">
+        <img src="${data.image}">
+        <div class="flower-info">
+          <h3>${data.name}</h3>
+          <p>${count} hội viên đang có</p>
+        </div>
+      </div>
 
       <button onclick="joinFlower('${docSnap.id}')">🌸 Tôi có hoa này</button>
       <button onclick="leaveFlower('${docSnap.id}')">❌ Xóa tên tôi</button>
 
-      ${(data.members || []).map(member =>
-        `<div class="member">${member}</div>`
-      ).join("")}
+      <div class="member-list">
+        ${(data.members || []).join(" • ") || "Chưa có ai"}
+      </div>
     `;
 
-    flowersDiv.appendChild(div);
+    flowers.appendChild(div);
   });
 
-  document.getElementById("totalFlowers").textContent = total;
-  document.getElementById("totalMembers").textContent = allMembers.size;
-  document.getElementById("topFlower").textContent = topName;
+  totalMembers.textContent = allMembers.size;
 }
 
 loadFlowers();

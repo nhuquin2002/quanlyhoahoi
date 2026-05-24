@@ -55,10 +55,6 @@ button {
   font-weight: bold;
 }
 
-.search {
-  margin-top: 10px;
-}
-
 .loading {
   text-align: center;
   color: #d63384;
@@ -75,10 +71,12 @@ button {
 }
 
 .flower-card img {
-  width: 100%;
-  max-height: 220px;
+  width: 120px;
+  height: 120px;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 16px;
+  display: block;
+  margin: 0 auto 10px;
 }
 
 .member {
@@ -123,7 +121,7 @@ button {
 <input type="file" id="flowerImage" accept="image/*">
 <button onclick="addFlower()">➕ Thêm loại hoa</button>
 
-<input class="search" id="searchInput" placeholder="🔍 Tìm kiếm hoa..." oninput="loadFlowers()">
+<input id="searchInput" placeholder="🔍 Tìm kiếm theo hoa hoặc hội viên">
 
 <div class="loading" id="loading">⏳ Đang tải ảnh...</div>
 
@@ -154,19 +152,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+document.getElementById("searchInput").addEventListener("input", loadFlowers);
+
 async function compressImage(file) {
   return new Promise((resolve) => {
     const img = new Image();
     const reader = new FileReader();
 
-    reader.onload = e => {
-      img.src = e.target.result;
-    };
+    reader.onload = e => img.src = e.target.result;
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const scale = 800 / img.width;
-      canvas.width = 800;
+      const maxWidth = 800;
+      const scale = maxWidth / img.width;
+
+      canvas.width = maxWidth;
       canvas.height = img.height * scale;
 
       const ctx = canvas.getContext("2d");
@@ -199,15 +199,15 @@ async function uploadToCloudinary(file) {
 }
 
 window.addFlower = async function () {
-  const name = flowerName.value.trim();
-  const file = flowerImage.files[0];
+  const name = document.getElementById("flowerName").value.trim();
+  const file = document.getElementById("flowerImage").files[0];
 
   if (!name || !file) {
-    alert("Nhập tên hoa + chọn ảnh");
+    alert("Nhập tên hoa và chọn ảnh");
     return;
   }
 
-  loading.style.display = "block";
+  document.getElementById("loading").style.display = "block";
 
   const imageUrl = await uploadToCloudinary(file);
 
@@ -217,9 +217,9 @@ window.addFlower = async function () {
     members: []
   });
 
-  flowerName.value = "";
-  flowerImage.value = "";
-  loading.style.display = "none";
+  document.getElementById("flowerName").value = "";
+  document.getElementById("flowerImage").value = "";
+  document.getElementById("loading").style.display = "none";
 
   loadFlowers();
 };
@@ -250,7 +250,7 @@ async function loadFlowers() {
   const flowersDiv = document.getElementById("flowers");
   flowersDiv.innerHTML = "";
 
-  const search = searchInput.value.toLowerCase();
+  const search = document.getElementById("searchInput").value.toLowerCase().trim();
   const snapshot = await getDocs(collection(db, "flowers"));
 
   let allMembers = new Set();
@@ -261,7 +261,15 @@ async function loadFlowers() {
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
 
-    if (!data.name.toLowerCase().includes(search)) return;
+    const memberMatch = (data.members || []).some(member =>
+      member.toLowerCase().includes(search)
+    );
+
+    if (
+      search &&
+      !data.name.toLowerCase().includes(search) &&
+      !memberMatch
+    ) return;
 
     total++;
 
@@ -278,7 +286,7 @@ async function loadFlowers() {
     div.className = "flower-card";
 
     div.innerHTML = `
-      <img src="${data.image}">
+      <img src="${data.image}" alt="${data.name}">
       <h3>${data.name}</h3>
       <div class="count">${count} hội viên đang có</div>
 
@@ -293,9 +301,9 @@ async function loadFlowers() {
     flowersDiv.appendChild(div);
   });
 
-  totalFlowers.textContent = total;
-  totalMembers.textContent = allMembers.size;
-  topFlower.textContent = topName;
+  document.getElementById("totalFlowers").textContent = total;
+  document.getElementById("totalMembers").textContent = allMembers.size;
+  document.getElementById("topFlower").textContent = topName;
 }
 
 loadFlowers();

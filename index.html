@@ -243,8 +243,20 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const flowers = document.getElementById("flowers");
+const searchInput = document.getElementById("searchInput");
+const totalMembers = document.getElementById("totalMembers");
+const flowerName = document.getElementById("flowerName");
+const flowerImage = document.getElementById("flowerImage");
+const loading = document.getElementById("loading");
+const flowerPopup = document.getElementById("flowerPopup");
+const popupImage = document.getElementById("popupImage");
+const popupTitle = document.getElementById("popupTitle");
+const popupMembers = document.getElementById("popupMembers");
+
 let currentUser = localStorage.getItem("flowerUser");
-let selectedFlowerId = null;
+let selectedFlowerName = null;
+let allDocs = [];
 
 if (!currentUser) {
   currentUser = prompt("Nhập tên hội viên:");
@@ -253,7 +265,7 @@ if (!currentUser) {
   }
 }
 
-document.getElementById("searchInput").addEventListener("input", loadFlowers);
+searchInput.addEventListener("input", loadFlowers);
 
 async function compressImage(file) {
   return new Promise((resolve) => {
@@ -332,13 +344,13 @@ window.addFlower = async function () {
   }
 };
 
-window.openPopup = function(id, data) {
-  selectedFlowerId = id;
+window.openPopup = function(data) {
+  selectedFlowerName = data.name.toLowerCase().trim();
 
   popupImage.src = data.image;
   popupTitle.textContent = data.name;
   popupMembers.innerHTML =
-    (data.members || []).join(" • ") || "Chưa có ai";
+    data.members.length ? data.members.join(" • ") : "Chưa có ai";
 
   flowerPopup.style.display = "flex";
 };
@@ -348,18 +360,30 @@ window.closePopup = function() {
 };
 
 window.joinCurrentFlower = async function() {
-  await updateDoc(doc(db, "flowers", selectedFlowerId), {
-    members: arrayUnion(currentUser)
-  });
+  const docsToUpdate = allDocs.filter(d =>
+    d.data().name.toLowerCase().trim() === selectedFlowerName
+  );
+
+  for (const d of docsToUpdate) {
+    await updateDoc(doc(db, "flowers", d.id), {
+      members: arrayUnion(currentUser)
+    });
+  }
 
   closePopup();
   loadFlowers();
 };
 
 window.leaveCurrentFlower = async function() {
-  await updateDoc(doc(db, "flowers", selectedFlowerId), {
-    members: arrayRemove(currentUser)
-  });
+  const docsToUpdate = allDocs.filter(d =>
+    d.data().name.toLowerCase().trim() === selectedFlowerName
+  );
+
+  for (const d of docsToUpdate) {
+    await updateDoc(doc(db, "flowers", d.id), {
+      members: arrayRemove(currentUser)
+    });
+  }
 
   closePopup();
   loadFlowers();
@@ -371,8 +395,10 @@ async function loadFlowers() {
   const search = searchInput.value.toLowerCase().trim();
   const snapshot = await getDocs(collection(db, "flowers"));
 
+  allDocs = snapshot.docs;
+
   let allMembers = new Set();
-  let flowerGroups = {};
+  let flowerGroups = new Map();
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
@@ -383,27 +409,31 @@ async function loadFlowers() {
 
     if (search && !flowerName.includes(search)) return;
 
-    if (!flowerGroups[flowerName]) {
-      flowerGroups[flowerName] = {
-        id: docSnap.id,
+    if (!flowerGroups.has(flowerName)) {
+      flowerGroups.set(flowerName, {
         name: data.name,
         image: data.image,
-        members: []
-      };
+        members: new Set()
+      });
     }
 
+    const flower = flowerGroups.get(flowerName);
+
     (data.members || []).forEach(member => {
-      if (!flowerGroups[flowerName].members.includes(member)) {
-        flowerGroups[flowerName].members.push(member);
-      }
+      flower.members.add(member);
       allMembers.add(member);
     });
   });
 
-  Object.values(flowerGroups).forEach((flower) => {
+  flowerGroups.forEach((flower) => {
     const div = document.createElement("div");
     div.className = "flower-card";
-    div.onclick = () => openPopup(flower.id, flower);
+
+    div.onclick = () => openPopup({
+      name: flower.name,
+      image: flower.image,
+      members: Array.from(flower.members)
+    });
 
     div.innerHTML = `
       <img src="${flower.image}">
@@ -415,24 +445,18 @@ async function loadFlowers() {
 
   totalMembers.textContent = allMembers.size;
 }
+
 let touchStartY = 0;
-let touchEndY = 0;
 
 document.addEventListener("touchstart", (e) => {
   touchStartY = e.touches[0].clientY;
 });
 
 document.addEventListener("touchend", async (e) => {
-  touchEndY = e.changedTouches[0].clientY;
+  const touchEndY = e.changedTouches[0].clientY;
 
   if (window.scrollY === 0 && touchEndY - touchStartY > 120) {
-    refreshLoading.style.display = "block";
-
     await loadFlowers();
-
-    setTimeout(() => {
-      refreshLoading.style.display = "none";
-    }, 800);
   }
 });
 

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quản lý hoa hội</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fff7fb;
+      margin: 0;
+      padding: 15px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #d63384;
+      margin-bottom: 20px;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 6px 0;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      background: #d63384;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+
+    .flower-card {
+      background: white;
+      border-radius: 16px;
+      padding: 15px;
+      margin-top: 15px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+
+    .flower-card img {
+      width: 100%;
+      border-radius: 12px;
+      max-height: 220px;
+      object-fit: cover;
+    }
+
+    .member {
+      background: #ffe3ef;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 8px;
+    }
+
+    .count {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🌸 Quản lý hoa hội 🌸</h1>
+
+  <input id="flowerName" placeholder="Nhập tên hoa">
+  <input id="flowerImage" placeholder="Dán link ảnh hoa">
+  <button onclick="addFlower()">➕ Thêm loại hoa</button>
+
+  <div id="flowers"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      getDocs,
+      doc,
+      updateDoc,
+      arrayUnion,
+      arrayRemove
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCCGhFuv8bAVvKxhOQLuTnXQS51x3k0DAM",
+      authDomain: "quan-ly-hoa-hoi.firebaseapp.com",
+      projectId: "quan-ly-hoa-hoi",
+      storageBucket: "quan-ly-hoa-hoi.firebasestorage.app",
+      messagingSenderId: "954370139081",
+      appId: "1:954370139081:web:1c10ba7d6ff8109c54be18",
+      measurementId: "G-GLB9L6D1ZK"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadFlowers() {
+      const flowersDiv = document.getElementById("flowers");
+      flowersDiv.innerHTML = "";
+
+      const snapshot = await getDocs(collection(db, "flowers"));
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+
+        const div = document.createElement("div");
+        div.className = "flower-card";
+
+        div.innerHTML = `
+          <img src="${data.image}" alt="${data.name}">
+          <h3>${data.name}</h3>
+          <div class="count">Có ${(data.members || []).length} thành viên đang có</div>
+
+          <button onclick="joinFlower('${docSnap.id}')">Tôi có hoa này</button>
+          <button onclick="leaveFlower('${docSnap.id}')">Xóa tên tôi</button>
+
+          ${(data.members || []).map(member => `
+            <div class="member">${member}</div>
+          `).join("")}
+        `;
+
+        flowersDiv.appendChild(div);
+      });
+    }
+
+    window.addFlower = async function () {
+      const name = document.getElementById("flowerName").value.trim();
+      const image = document.getElementById("flowerImage").value.trim();
+
+      if (!name || !image) {
+        alert("Vui lòng nhập đủ tên hoa và link ảnh");
+        return;
+      }
+
+      await addDoc(collection(db, "flowers"), {
+        name,
+        image,
+        members: []
+      });
+
+      document.getElementById("flowerName").value = "";
+      document.getElementById("flowerImage").value = "";
+
+      loadFlowers();
+    };
+
+    window.joinFlower = async function (id) {
+      const name = prompt("Nhập tên của bạn:");
+      if (!name) return;
+
+      await updateDoc(doc(db, "flowers", id), {
+        members: arrayUnion(name)
+      });
+
+      loadFlowers();
+    };
+
+    window.leaveFlower = async function (id) {
+      const name = prompt("Nhập tên cần xóa:");
+      if (!name) return;
+
+      await updateDoc(doc(db, "flowers", id), {
+        members: arrayRemove(name)
+      });
+
+      loadFlowers();
+    };
+
+    loadFlowers();
+  </script>
+
+</body>
+</html>

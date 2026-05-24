@@ -184,6 +184,33 @@ button {
     opacity: 1;
   }
 }
+}
+
+#flowerListContainer {
+  max-height: 420px;
+  overflow-y: auto;
+  text-align: left;
+  margin-top: 10px;
+}
+
+.flower-chip {
+  display: inline-block;
+  padding: 8px 14px;
+  margin: 6px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid #f2d6e5;
+  color: #d63384;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(214,51,132,0.08);
+}
+
+.flower-chip:active {
+  transform: scale(0.95);
+}
+
 </style>
 </head>
 
@@ -205,6 +232,15 @@ button {
 <button onclick="addFlower()">➕ Thêm loại hoa</button>
 
 <div class="loading" id="loading">⏳ Đang tải...</div>
+<button onclick="openFlowerList()">📚 Danh sách loài hoa</button>
+
+<div id="flowerListPopup" class="popup">
+  <div class="popup-box">
+    <span class="close-btn" onclick="closeFlowerList()">✕</span>
+    <h2>🌸 Danh sách loài hoa</h2>
+    <div id="flowerListContainer"></div>
+  </div>
+</div>
 
 <div class="grid" id="flowers"></div>
 
@@ -366,6 +402,51 @@ window.openPopup = function(data) {
 
 window.closePopup = function() {
   flowerPopup.style.display = "none";
+};
+window.openFlowerList = async function() {
+  const snapshot = await getDocs(collection(db, "flowers"));
+
+  let uniqueFlowers = new Map();
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    if (!data.name) return;
+
+    const cleanName = data.name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ");
+
+    if (!uniqueFlowers.has(cleanName)) {
+      uniqueFlowers.set(cleanName, {
+        name: data.name.trim(),
+        image: data.image,
+        members: data.members || []
+      });
+    }
+  });
+
+  flowerListContainer.innerHTML = "";
+
+  uniqueFlowers.forEach((flower) => {
+    const chip = document.createElement("span");
+    chip.className = "flower-chip";
+    chip.textContent = flower.name;
+
+    chip.onclick = () => {
+      closeFlowerList();
+      openPopup(flower);
+    };
+
+    flowerListContainer.appendChild(chip);
+  });
+
+  flowerListPopup.style.display = "flex";
+};
+
+window.closeFlowerList = function() {
+  flowerListPopup.style.display = "none";
 };
 
 window.joinCurrentFlower = async function() {

@@ -132,6 +132,10 @@ button {
   backdrop-filter: blur(8px);
 }
 
+#categoryPopup {
+  z-index: 2000;
+}
+
 .popup-box {
   background: rgba(255,255,255,0.98);
   width: 100%;
@@ -474,8 +478,23 @@ window.openFlowerList = async function() {
     groupedFlowers[category].push(flower);
   });
 
-  Object.entries(groupedFlowers).forEach(([group, flowers]) => {
-    if (!flowers.length) return;
+  const categoryOrder = [
+  "Phẩm Đỏ",
+  "Phẩm Vàng",
+  "Phẩm Tím",
+  "Phẩm Xanh Dương",
+  "Phẩm Xanh Lá",
+  "Chưa phân loại"
+];
+
+categoryOrder.forEach((group) => {
+  const flowers = groupedFlowers[group];
+
+  if (!flowers.length) return;
+
+  flowers.sort((a, b) =>
+    a.name.localeCompare(b.name, "vi")
+  );
 
     const section = document.createElement("div");
     section.style.marginBottom = "16px";

@@ -254,6 +254,19 @@ button {
 
 <div class="grid" id="flowers"></div>
 
+<div id="categoryPopup" class="popup">
+  <div class="popup-box">
+    <span class="close-btn" onclick="closeCategoryPopup()">✕</span>
+    <h2>🌸 Chọn phẩm</h2>
+
+    <button onclick="setFlowerCategory('Phẩm Đỏ')">🔴 Phẩm Đỏ</button>
+    <button onclick="setFlowerCategory('Phẩm Vàng')">🟡 Phẩm Vàng</button>
+    <button onclick="setFlowerCategory('Phẩm Tím')">🟣 Phẩm Tím</button>
+    <button onclick="setFlowerCategory('Phẩm Xanh Dương')">🔵 Phẩm Xanh Dương</button>
+    <button onclick="setFlowerCategory('Phẩm Xanh Lá')">🟢 Phẩm Xanh Lá</button>
+  </div>
+</div>
+
 <div id="flowerPopup" class="popup">
   <div class="popup-box">
     <span class="close-btn" onclick="closePopup()">✕</span>
@@ -303,6 +316,7 @@ const flowerPopup = document.getElementById("flowerPopup");
 const popupImage = document.getElementById("popupImage");
 const popupTitle = document.getElementById("popupTitle");
 const popupMembers = document.getElementById("popupMembers");
+const categoryPopup = document.getElementById("categoryPopup");
 
 let currentUser = localStorage.getItem("flowerUser");
 let selectedFlowerName = null;
@@ -515,19 +529,15 @@ window.joinCurrentFlower = async function() {
   loadFlowers();
 };
 
-window.changeFlowerCategory = async function() {
-  const category = prompt(
-`Nhập đúng tên phẩm:
+window.changeFlowerCategory = function() {
+  categoryPopup.style.display = "flex";
+};
 
-Phẩm Đỏ
-Phẩm Vàng
-Phẩm Tím
-Phẩm Xanh Dương
-Phẩm Xanh Lá`
-  );
+window.closeCategoryPopup = function() {
+  categoryPopup.style.display = "none";
+};
 
-  if (!category) return;
-
+window.setFlowerCategory = async function(category) {
   const docsToUpdate = allDocs.filter(d => {
     const name = d.data().name
       ?.toLowerCase()
@@ -543,7 +553,7 @@ Phẩm Xanh Lá`
     });
   }
 
-  alert("Đã cập nhật phẩm");
+  closeCategoryPopup();
   closePopup();
   loadFlowers();
 };

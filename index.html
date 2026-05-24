@@ -27,7 +27,8 @@ h1 {
   font-weight: 800;
 }
 
-input {
+input,
+select {
   width: 100%;
   padding: 14px 16px;
   margin: 8px 0;
@@ -228,6 +229,15 @@ button {
 </div>
 
 <input id="flowerName" placeholder="Nhập tên hoa">
+
+<select id="flowerCategory">
+  <option value="Phẩm Đỏ">🔴 Phẩm Đỏ</option>
+  <option value="Phẩm Vàng">🟡 Phẩm Vàng</option>
+  <option value="Phẩm Tím">🟣 Phẩm Tím</option>
+  <option value="Phẩm Xanh Dương">🔵 Phẩm Xanh Dương</option>
+  <option value="Phẩm Xanh Lá">🟢 Phẩm Xanh Lá</option>
+</select>
+
 <input type="file" id="flowerImage" accept="image/*">
 <button onclick="addFlower()">➕ Thêm loại hoa</button>
 
@@ -251,6 +261,7 @@ button {
     <h2 id="popupTitle"></h2>
 
     <button onclick="joinCurrentFlower()">🌸 Tôi có hoa này</button>
+    <button onclick="changeFlowerCategory()">✏️ Chọn phẩm</button>
     <button onclick="leaveCurrentFlower()">❌ Xóa tên tôi</button>
 
     <div id="popupMembers"></div>
@@ -352,6 +363,7 @@ async function uploadToCloudinary(file) {
 window.addFlower = async function () {
   const name = flowerName.value.trim();
   const file = flowerImage.files[0];
+  const category = flowerCategory.value;
 
   if (!name || !file) {
     alert("Nhập tên hoa + chọn ảnh");
@@ -364,10 +376,11 @@ window.addFlower = async function () {
     const imageUrl = await uploadToCloudinary(file);
 
     await addDoc(collection(db, "flowers"), {
-      name,
-      image: imageUrl,
-      members: []
-    });
+  name,
+  image: imageUrl,
+  category,
+  members: []
+});
 
     flowerName.value = "";
     flowerImage.value = "";
@@ -406,6 +419,15 @@ window.closePopup = function() {
 window.openFlowerList = async function() {
   const snapshot = await getDocs(collection(db, "flowers"));
 
+  let groupedFlowers = {
+    "Phẩm Đỏ": [],
+    "Phẩm Vàng": [],
+    "Phẩm Tím": [],
+    "Phẩm Xanh Dương": [],
+    "Phẩm Xanh Lá": [],
+    "Chưa phân loại": []
+  };
+
   let uniqueFlowers = new Map();
 
   snapshot.forEach((docSnap) => {
@@ -422,7 +444,8 @@ window.openFlowerList = async function() {
       uniqueFlowers.set(cleanName, {
         name: data.name.trim(),
         image: data.image,
-        members: data.members || []
+        members: data.members || [],
+        category: data.category || "Chưa phân loại"
       });
     }
   });
@@ -430,16 +453,39 @@ window.openFlowerList = async function() {
   flowerListContainer.innerHTML = "";
 
   uniqueFlowers.forEach((flower) => {
-    const chip = document.createElement("span");
-    chip.className = "flower-chip";
-    chip.textContent = flower.name;
+    const category = groupedFlowers[flower.category]
+      ? flower.category
+      : "Chưa phân loại";
 
-    chip.onclick = () => {
-      closeFlowerList();
-      openPopup(flower);
-    };
+    groupedFlowers[category].push(flower);
+  });
 
-    flowerListContainer.appendChild(chip);
+  Object.entries(groupedFlowers).forEach(([group, flowers]) => {
+    if (!flowers.length) return;
+
+    const section = document.createElement("div");
+    section.style.marginBottom = "16px";
+
+    const title = document.createElement("h3");
+    title.textContent = group;
+    title.style.color = "#d63384";
+
+    section.appendChild(title);
+
+    flowers.forEach((flower) => {
+      const chip = document.createElement("span");
+      chip.className = "flower-chip";
+      chip.textContent = flower.name;
+
+      chip.onclick = () => {
+        closeFlowerList();
+        openPopup(flower);
+      };
+
+      section.appendChild(chip);
+    });
+
+    flowerListContainer.appendChild(section);
   });
 
   flowerListPopup.style.display = "flex";
@@ -465,6 +511,39 @@ window.joinCurrentFlower = async function() {
     });
   }
 
+  closePopup();
+  loadFlowers();
+};
+
+window.changeFlowerCategory = async function() {
+  const category = prompt(
+`Nhập đúng tên phẩm:
+
+Phẩm Đỏ
+Phẩm Vàng
+Phẩm Tím
+Phẩm Xanh Dương
+Phẩm Xanh Lá`
+  );
+
+  if (!category) return;
+
+  const docsToUpdate = allDocs.filter(d => {
+    const name = d.data().name
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ");
+
+    return name === selectedFlowerName;
+  });
+
+  for (const d of docsToUpdate) {
+    await updateDoc(doc(db, "flowers", d.id), {
+      category
+    });
+  }
+
+  alert("Đã cập nhật phẩm");
   closePopup();
   loadFlowers();
 };

@@ -339,15 +339,10 @@ async function loadFlowers() {
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
 
-    const memberMatch = (data.members || []).some(member =>
-      member.toLowerCase().includes(search)
-    );
-
     if (
-      search &&
-      !data.name.toLowerCase().includes(search) &&
-      !memberMatch
-    ) return;
+  search &&
+  !data.name.toLowerCase().startsWith(search)
+) return;
 
     (data.members || []).forEach(m => allMembers.add(m));
 

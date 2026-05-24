@@ -2,14 +2,14 @@
 <html lang="vi">
 <head>
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#d63384">
-<link rel="apple-touch-icon" sizes="180x180" href="/icon-512.png.PNG?v=2">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Flower Hội">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>🌸 Flower Hội</title>
+  <meta name="theme-color" content="#d63384">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon-512.png.PNG?v=2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Flower Hội">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🌸 Flower Hội</title>
 
 <style>
 body {
@@ -27,15 +27,13 @@ h1 {
   font-weight: 800;
 }
 
-input[type="text"],
-input[type="file"],
-input:not([type="file"]) {
+input {
   width: 100%;
   padding: 14px 16px;
   margin: 8px 0;
   border-radius: 18px;
   border: 1px solid #f2d6e5;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.95);
   box-sizing: border-box;
   font-size: 16px;
   box-shadow: 0 4px 18px rgba(214, 51, 132, 0.06);
@@ -118,6 +116,7 @@ button {
   color: #d63384;
   margin-top: 10px;
   font-weight: 600;
+  display: none;
 }
 
 .popup {
@@ -187,21 +186,25 @@ button {
 }
 </style>
 </head>
+
 <body>
 
 <h1>🌸 Flower Hội 🌸</h1>
 
-<input id="searchInput" placeholder="🔍 Tìm kiếm hoa hoặc hội viên">
+<input id="searchInput" placeholder="🔍 Tìm kiếm hoa">
 
 <div class="dashboard">
-  <div class="stat">Hội viên<b id="totalMembers">0</b></div>
+  <div class="stat">
+    Hội viên
+    <b id="totalMembers">0</b>
+  </div>
 </div>
 
 <input id="flowerName" placeholder="Nhập tên hoa">
 <input type="file" id="flowerImage" accept="image/*">
 <button onclick="addFlower()">➕ Thêm loại hoa</button>
 
-<div class="loading" id="loading">⏳ Đang tải ảnh...</div>
+<div class="loading" id="loading">⏳ Đang tải...</div>
 
 <div class="grid" id="flowers"></div>
 
@@ -345,12 +348,18 @@ window.addFlower = async function () {
 };
 
 window.openPopup = function(data) {
-  selectedFlowerName = data.name.toLowerCase().trim();
+  selectedFlowerName = data.name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
 
   popupImage.src = data.image;
   popupTitle.textContent = data.name;
+
   popupMembers.innerHTML =
-    data.members.length ? data.members.join(" • ") : "Chưa có ai";
+    data.members.length
+      ? data.members.join(" • ")
+      : "Chưa có ai";
 
   flowerPopup.style.display = "flex";
 };
@@ -360,9 +369,14 @@ window.closePopup = function() {
 };
 
 window.joinCurrentFlower = async function() {
-  const docsToUpdate = allDocs.filter(d =>
-    d.data().name.toLowerCase().trim() === selectedFlowerName
-  );
+  const docsToUpdate = allDocs.filter(d => {
+    const name = d.data().name
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ");
+
+    return name === selectedFlowerName;
+  });
 
   for (const d of docsToUpdate) {
     await updateDoc(doc(db, "flowers", d.id), {
@@ -375,9 +389,14 @@ window.joinCurrentFlower = async function() {
 };
 
 window.leaveCurrentFlower = async function() {
-  const docsToUpdate = allDocs.filter(d =>
-    d.data().name.toLowerCase().trim() === selectedFlowerName
-  );
+  const docsToUpdate = allDocs.filter(d => {
+    const name = d.data().name
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ");
+
+    return name === selectedFlowerName;
+  });
 
   for (const d of docsToUpdate) {
     await updateDoc(doc(db, "flowers", d.id), {
@@ -392,9 +411,12 @@ window.leaveCurrentFlower = async function() {
 async function loadFlowers() {
   flowers.innerHTML = "";
 
-  const search = searchInput.value.toLowerCase().trim();
-  const snapshot = await getDocs(collection(db, "flowers"));
+  const search = searchInput.value
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, " ");
 
+  const snapshot = await getDocs(collection(db, "flowers"));
   allDocs = snapshot.docs;
 
   let allMembers = new Set();
@@ -405,19 +427,22 @@ async function loadFlowers() {
 
     if (!data.name) return;
 
-    const flowerName = data.name.toLowerCase().trim();
+    const cleanName = data.name
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ");
 
-    if (search && !flowerName.includes(search)) return;
+    if (search && !cleanName.includes(search)) return;
 
-    if (!flowerGroups.has(flowerName)) {
-      flowerGroups.set(flowerName, {
-        name: data.name,
+    if (!flowerGroups.has(cleanName)) {
+      flowerGroups.set(cleanName, {
+        name: data.name.trim(),
         image: data.image,
         members: new Set()
       });
     }
 
-    const flower = flowerGroups.get(flowerName);
+    const flower = flowerGroups.get(cleanName);
 
     (data.members || []).forEach(member => {
       flower.members.add(member);

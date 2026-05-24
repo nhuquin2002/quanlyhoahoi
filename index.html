@@ -16,8 +16,8 @@ body {
 h1 {
   text-align: center;
   color: #d63384;
-  margin-bottom: 12px;
   font-size: 24px;
+  margin-bottom: 10px;
 }
 
 input, button {
@@ -50,7 +50,6 @@ button {
   border-radius: 14px;
   text-align: center;
   box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  font-size: 14px;
 }
 
 .stat b {
@@ -59,43 +58,45 @@ button {
   font-size: 18px;
 }
 
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 15px;
+}
+
 .flower-card {
   background: white;
   border-radius: 16px;
-  padding: 12px;
-  margin-top: 12px;
+  padding: 10px;
   box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  cursor: pointer;
 }
 
-.flower-top {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.flower-top img {
-  width: 85px;
-  height: 85px;
+.flower-card img {
+  width: 100%;
+  aspect-ratio: 1/1;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: 12px;
 }
 
-.flower-info h3 {
-  margin: 0;
+.flower-card h3 {
+  margin: 8px 0 0;
+  text-align: center;
   color: #d63384;
+  font-size: 16px;
 }
 
-.flower-info p {
-  margin: 4px 0;
-  color: #666;
-  font-size: 14px;
+.detail {
+  display: none;
+  margin-top: 10px;
 }
 
 .member-list {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #444;
-  line-height: 1.6;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.5;
 }
 
 .loading {
@@ -121,7 +122,7 @@ button {
 
 <div class="loading" id="loading">⏳ Đang tải ảnh...</div>
 
-<div id="flowers"></div>
+<div class="grid" id="flowers"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -151,7 +152,7 @@ const db = getFirestore(app);
 let currentUser = localStorage.getItem("flowerUser");
 
 if (!currentUser) {
-  currentUser = prompt("Nhập tên hội viên của bạn:");
+  currentUser = prompt("Nhập tên hội viên:");
   if (currentUser) {
     localStorage.setItem("flowerUser", currentUser);
   }
@@ -168,9 +169,9 @@ async function compressImage(file) {
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
-      const scale = 600 / img.width;
+      const scale = 500 / img.width;
 
-      canvas.width = 600;
+      canvas.width = 500;
       canvas.height = img.height * scale;
 
       const ctx = canvas.getContext("2d");
@@ -232,7 +233,6 @@ window.joinFlower = async function(id) {
   await updateDoc(doc(db, "flowers", id), {
     members: arrayUnion(currentUser)
   });
-
   loadFlowers();
 };
 
@@ -240,8 +240,12 @@ window.leaveFlower = async function(id) {
   await updateDoc(doc(db, "flowers", id), {
     members: arrayRemove(currentUser)
   });
-
   loadFlowers();
+};
+
+window.toggleDetail = function(id) {
+  const el = document.getElementById("detail-" + id);
+  el.style.display = el.style.display === "block" ? "none" : "block";
 };
 
 async function loadFlowers() {
@@ -267,25 +271,21 @@ async function loadFlowers() {
 
     (data.members || []).forEach(m => allMembers.add(m));
 
-    const count = (data.members || []).length;
-
     const div = document.createElement("div");
     div.className = "flower-card";
+    div.onclick = () => toggleDetail(docSnap.id);
 
     div.innerHTML = `
-      <div class="flower-top">
-        <img src="${data.image}">
-        <div class="flower-info">
-          <h3>${data.name}</h3>
-          <p>${count} hội viên đang có</p>
+      <img src="${data.image}">
+      <h3>${data.name}</h3>
+
+      <div class="detail" id="detail-${docSnap.id}">
+        <button onclick="event.stopPropagation(); joinFlower('${docSnap.id}')">🌸 Tôi có hoa này</button>
+        <button onclick="event.stopPropagation(); leaveFlower('${docSnap.id}')">❌ Xóa tên tôi</button>
+
+        <div class="member-list">
+          ${(data.members || []).join(" • ") || "Chưa có ai"}
         </div>
-      </div>
-
-      <button onclick="joinFlower('${docSnap.id}')">🌸 Tôi có hoa này</button>
-      <button onclick="leaveFlower('${docSnap.id}')">❌ Xóa tên tôi</button>
-
-      <div class="member-list">
-        ${(data.members || []).join(" • ") || "Chưa có ai"}
       </div>
     `;
 

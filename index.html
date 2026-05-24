@@ -307,21 +307,29 @@ window.addFlower = async function () {
     return;
   }
 
-  loading.style.display = "block";
+  try {
+    loading.style.display = "block";
 
-  const imageUrl = await uploadToCloudinary(file);
+    const imageUrl = await uploadToCloudinary(file);
 
-  await addDoc(collection(db, "flowers"), {
-    name,
-    image: imageUrl,
-    members: []
-  });
+    await addDoc(collection(db, "flowers"), {
+      name,
+      image: imageUrl,
+      members: []
+    });
 
-  flowerName.value = "";
-  flowerImage.value = "";
-  loading.style.display = "none";
+    flowerName.value = "";
+    flowerImage.value = "";
 
-  loadFlowers();
+    await loadFlowers();
+
+  } catch (error) {
+    alert("Upload ảnh lỗi");
+    console.log(error);
+
+  } finally {
+    loading.style.display = "none";
+  }
 };
 
 window.openPopup = function(id, data) {

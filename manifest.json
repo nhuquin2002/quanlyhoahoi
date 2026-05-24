@@ -1,7 +1,7 @@
 {
-  "name": "FLOWER Dashboard",
-  "short_name": "FLOWER",
-  "start_url": "./",
+  "name": "Flower Hội",
+  "short_name": "Flower Hội",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#fff7fb",
   "theme_color": "#d63384",

@@ -70,7 +70,7 @@
   <h1>🌸 Quản lý hoa hội 🌸</h1>
 
   <input id="flowerName" placeholder="Nhập tên hoa">
-  <input id="flowerImage" placeholder="Dán link ảnh hoa">
+  <input type="file" id="flowerImage" accept="image/*">
   <button onclick="addFlower()">➕ Thêm loại hoa</button>
 
   <div id="flowers"></div>
@@ -95,12 +95,28 @@
       projectId: "quan-ly-hoa-hoi",
       storageBucket: "quan-ly-hoa-hoi.firebasestorage.app",
       messagingSenderId: "954370139081",
-      appId: "1:954370139081:web:1c10ba7d6ff8109c54be18",
-      measurementId: "G-GLB9L6D1ZK"
+      appId: "1:954370139081:web:1c10ba7d6ff8109c54be18"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+
+    async function uploadToCloudinary(file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "hoa_upload");
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/dwoznij8g/image/upload",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+      const data = await response.json();
+      return data.secure_url;
+    }
 
     async function loadFlowers() {
       const flowersDiv = document.getElementById("flowers");
@@ -133,16 +149,20 @@
 
     window.addFlower = async function () {
       const name = document.getElementById("flowerName").value.trim();
-      const image = document.getElementById("flowerImage").value.trim();
+      const file = document.getElementById("flowerImage").files[0];
 
-      if (!name || !image) {
-        alert("Vui lòng nhập đủ tên hoa và link ảnh");
+      if (!name || !file) {
+        alert("Vui lòng nhập tên hoa và chọn ảnh");
         return;
       }
 
+      alert("Đang tải ảnh...");
+
+      const imageUrl = await uploadToCloudinary(file);
+
       await addDoc(collection(db, "flowers"), {
         name,
-        image,
+        image: imageUrl,
         members: []
       });
 

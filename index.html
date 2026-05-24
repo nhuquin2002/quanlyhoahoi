@@ -628,59 +628,61 @@ async function loadFlowers() {
 
     if (search && !cleanName.includes(search)) return;
 
-    flowerGroups.set(cleanName, {
-      name: data.name.trim(),
-      image: data.image,
-      category: data.category || "Chưa phân loại",
-      members: new Set()
-});
+    if (!flowerGroups.has(cleanName)) {
+      flowerGroups.set(cleanName, {
+        name: data.name.trim(),
+        image: data.image,
+        category: data.category || "Chưa phân loại",
+        members: new Set()
+      });
     }
 
     const flower = flowerGroups.get(cleanName);
 
-    (data.members || []).forEach(member => {
+    (data.members || []).forEach((member) => {
       flower.members.add(member);
       allMembers.add(member);
     });
   });
 
   const categoryOrder = [
-  "Phẩm Đỏ",
-  "Phẩm Vàng",
-  "Phẩm Tím",
-  "Phẩm Xanh Dương",
-  "Phẩm Xanh Lá",
-  "Chưa phân loại"
-];
+    "Phẩm Đỏ",
+    "Phẩm Vàng",
+    "Phẩm Tím",
+    "Phẩm Xanh Dương",
+    "Phẩm Xanh Lá",
+    "Chưa phân loại"
+  ];
 
-const sortedFlowers = Array.from(flowerGroups.values()).sort((a, b) => {
-  const catA = categoryOrder.indexOf(a.category || "Chưa phân loại");
-  const catB = categoryOrder.indexOf(b.category || "Chưa phân loại");
+  const sortedFlowers = Array.from(flowerGroups.values()).sort((a, b) => {
+    const catA = categoryOrder.indexOf(a.category || "Chưa phân loại");
+    const catB = categoryOrder.indexOf(b.category || "Chưa phân loại");
 
-  if (catA !== catB) {
-    return catA - catB;
-  }
+    if (catA !== catB) {
+      return catA - catB;
+    }
 
-  return a.name.localeCompare(b.name, "vi");
-}); 
-
-sortedFlowers.forEach((flower) => {
-  const div = document.createElement("div");
-  div.className = "flower-card";
-
-  div.onclick = () => openPopup({
-    name: flower.name,
-    image: flower.image,
-    members: Array.from(flower.members)
+    return a.name.localeCompare(b.name, "vi");
   });
 
-  div.innerHTML = `
-    <img src="${flower.image}">
-    <h3>${flower.name}</h3>
-  `;
+  sortedFlowers.forEach((flower) => {
+    const div = document.createElement("div");
+    div.className = "flower-card";
 
-  flowers.appendChild(div);
-});
+    div.onclick = () =>
+      openPopup({
+        name: flower.name,
+        image: flower.image,
+        members: Array.from(flower.members)
+      });
+
+    div.innerHTML = `
+      <img src="${flower.image}">
+      <h3>${flower.name}</h3>
+    `;
+
+    flowers.appendChild(div);
+  });
 
   totalMembers.textContent = allMembers.size;
 }

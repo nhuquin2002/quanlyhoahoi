@@ -792,10 +792,14 @@ categoryOrder.forEach((category) => {
 
 totalMembers.textContent = allMembers.size;
 
-setTimeout(() => {
-  window.scrollTo(0, savedScrollY);
-}, 100);
-}
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: savedScrollY,
+      behavior: "auto"
+    });
+  });
+});
 
 let touchStartY = 0;
 

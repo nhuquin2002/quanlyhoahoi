@@ -521,34 +521,37 @@ window.showAllMembers = function() {
   background:white;
   width:100%;
   max-width:420px;
-  max-height:80vh;
-  overflow:auto;
-  border-radius:28px;
-  padding:20px;
+  max-height:82vh;
+  overflow-y:auto;
+  border-radius:30px;
+  padding:22px;
   position:relative;
 ">
 
-<button onclick="document.getElementById('memberListPopup').remove()"
-style="
-  position:absolute;
-  top:14px;
-  right:18px;
-  border:none;
-  background:none;
-  font-size:34px;
-  color:#999;
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
 ">
-×
-</button>
+  <h2 style="
+    margin:0;
+    color:#d63384;
+    font-size:28px;
+    font-weight:800;
+  ">
+    👥 Tất cả thành viên
+  </h2>
 
-<h2 style="
-  margin:0 0 20px 0;
-  color:#d63384;
-  font-size:34px;
-  font-weight:800;
-">
-👥 Tất cả thành viên
-</h2>
+  <button onclick="document.getElementById('memberListPopup').remove()"
+  style="
+    border:none;
+    background:none;
+    font-size:34px;
+    color:#999;
+    line-height:1;
+  ">×</button>
+</div>
 
 ${html}
 
@@ -621,29 +624,45 @@ window.showMemberFlowers = function(memberName) {
   `;
 
   popup.innerHTML = `
-    <div style="
-      background:white;
-      width:100%;
-      max-width:420px;
-      max-height:80vh;
-      overflow:auto;
-      border-radius:28px;
-      padding:20px;
-    ">
-      <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:16px;
-      ">
-        <h2 style="margin:0;color:#d63384;">🌸 ${memberName}</h2>
-        <button onclick="document.getElementById('memberFlowerPopup').remove()"
-        style="border:none;background:none;font-size:30px;">×</button>
-      </div>
+<div style="
+  background:white;
+  width:100%;
+  max-width:420px;
+  max-height:82vh;
+  overflow-y:auto;
+  border-radius:30px;
+  padding:22px;
+">
 
-      ${html}
-    </div>
-  `;
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+">
+  <h2 style="
+    margin:0;
+    color:#d63384;
+    font-size:28px;
+    font-weight:800;
+  ">
+    🌸 ${memberName}
+  </h2>
+
+  <button onclick="document.getElementById('memberFlowerPopup').remove()"
+  style="
+    border:none;
+    background:none;
+    font-size:34px;
+    color:#999;
+    line-height:1;
+  ">×</button>
+</div>
+
+${html}
+
+</div>
+`;
 
   document.body.appendChild(popup);
 };

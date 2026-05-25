@@ -601,27 +601,28 @@ window.showMemberFlowers = function(memberName) {
   color:#d63384;
   margin-bottom:24px;
   padding-top:8px;
+  pointer-events:none;
 ">
   🌸 ${memberName}
 </div>
 
-      <div onclick="popup.remove()" style="
+      <button onclick="popup.remove(); event.stopPropagation();" style="
   position:absolute;
   top:12px;
   right:12px;
   width:48px;
   height:48px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  border:none;
+  background:transparent;
   font-size:34px;
   font-weight:700;
   color:#999;
+  z-index:9999999;
   cursor:pointer;
-  z-index:999999;
-  pointer-events:auto;
-  background:transparent;
-">×</div>
+  -webkit-appearance:none;
+  appearance:none;
+  touch-action:manipulation;
+">×</button>
 
       ${flowers.map(f => `
         <div style="

@@ -528,22 +528,16 @@ window.showAllMembers = function() {
   position:relative;
 ">
 
-<button onclick="document.getElementById('memberListPopup').remove()"
-style="
+<div onclick="document.getElementById('memberListPopup').remove()" style="
   position:absolute;
-  top:12px;
-  right:16px;
-  border:none;
-  background:transparent;
-  box-shadow:none;
-  font-size:36px;
+  top:16px;
+  right:20px;
+  font-size:34px;
+  font-weight:700;
   color:#999;
-  padding:0;
-  margin:0;
-  line-height:1;
-">
-×
-</button>
+  cursor:pointer;
+  z-index:99999;
+">×</div>
 
 <h2 style="
   margin:0 0 24px 0;

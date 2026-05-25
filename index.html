@@ -365,6 +365,7 @@ const categoryPopup = document.getElementById("categoryPopup");
 let currentUser = localStorage.getItem("flowerUser");
 let selectedFlowerName = null;
 let allDocs = [];
+let savedScrollY = 0;
 
 function normalizeText(text) {
   return (text || "")
@@ -673,6 +674,7 @@ window.leaveCurrentFlower = async function() {
     });
   }
 
+  savedScrollY = window.scrollY;
   closePopup();
   loadFlowers();
 };
@@ -789,6 +791,10 @@ categoryOrder.forEach((category) => {
 });
 
 totalMembers.textContent = allMembers.size;
+
+setTimeout(() => {
+  window.scrollTo(0, savedScrollY);
+}, 100);
 }
 
 let touchStartY = 0;

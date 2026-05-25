@@ -78,20 +78,20 @@ button {
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .flower-card {
+  width: 110px;
   background: rgba(255,255,255,0.96);
-  border-radius: 16px;
-  padding: 6px;
+  border-radius: 18px;
+  padding: 8px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
   cursor: pointer;
-  transition: transform 0.15s ease;
-  min-height: 130px;
+  flex-shrink: 0;
 }
 
 .flower-card:active {
@@ -102,17 +102,16 @@ button {
   width: 100%;
   aspect-ratio: 1/1;
   object-fit: cover;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 .flower-card h3 {
   text-align: center;
   color: #d63384;
-  font-size: 11px;
-  margin: 6px 2px 0;
+  font-size: 13px;
+  margin: 8px 2px 0;
   font-weight: 700;
-  line-height: 1.2;
-  word-break: break-word;
+  line-height: 1.25;
 }
 
 .category-title {

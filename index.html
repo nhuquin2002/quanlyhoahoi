@@ -680,7 +680,7 @@ window.leaveCurrentFlower = async function() {
 async function loadFlowers() {
   flowers.innerHTML = "";
 
-  const cleanName = normalizeText(data.name);
+  const search = normalizeText(searchInput.value);
 
   const snapshot = await getDocs(collection(db, "flowers"));
   allDocs = snapshot.docs;
@@ -693,10 +693,7 @@ async function loadFlowers() {
 
     if (!data.name) return;
 
-    const cleanName = data.name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, " ");
+    const cleanName = normalizeText(data.name);
 
     if (search && !cleanName.includes(search)) return;
 

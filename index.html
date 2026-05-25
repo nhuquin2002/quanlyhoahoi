@@ -668,6 +668,10 @@ window.openPopup = function(data) {
 
 window.closePopup = function() {
   flowerPopup.style.display = "none";
+
+  popupImage.style.display = "block";
+  popupTitle.innerHTML = "";
+  popupMembers.innerHTML = "";
 };
 window.openFlowerList = async function() {
   const snapshot = await getDocs(collection(db, "flowers"));

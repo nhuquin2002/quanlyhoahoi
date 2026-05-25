@@ -459,14 +459,97 @@ window.closeMenu = function() {
   menuOverlay.classList.remove("show");
 };
 
-window.showAllMembers = function() {
+window.showAllMembers = async function() {
   closeMenu();
-  alert("Sắp thêm danh sách tất cả thành viên 🌸");
+
+  const snapshot = await getDocs(collection(db, "flowers"));
+  let membersMap = new Map();
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    if (!data.members || !data.name) return;
+
+    data.members.forEach((member) => {
+      if (!membersMap.has(member)) {
+        membersMap.set(member, []);
+      }
+
+      membersMap.get(member).push(data.name);
+    });
+  });
+
+  let html = "<h2 style='color:#d63384'>👥 Tất cả thành viên</h2>";
+
+  membersMap.forEach((flowers, member) => {
+    html += `
+      <div style="
+        background:white;
+        border-radius:18px;
+        padding:14px;
+        margin-bottom:12px;
+        box-shadow:0 6px 16px rgba(214,51,132,0.12);
+      ">
+        <b>${member}</b><br>
+        🌸 ${flowers.join(", ")}
+      </div>
+    `;
+  });
+
+  flowerPopup.innerHTML = `
+    <div class="popup-content" style="max-height:80vh;overflow:auto">
+      ${html}
+      <button onclick="closePopup()">Đóng</button>
+    </div>
+  `;
+
+  flowerPopup.style.display = "flex";
 };
 
-window.manageMembers = function() {
+window.manageMembers = async function() {
   closeMenu();
-  alert("Sắp thêm quản lý thành viên ⚙️");
+
+  const snapshot = await getDocs(collection(db, "flowers"));
+  let membersSet = new Set();
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    (data.members || []).forEach(member => membersSet.add(member));
+  });
+
+  let html = "<h2 style='color:#d63384'>⚙️ Quản lý thành viên</h2>";
+
+  Array.from(membersSet).sort().forEach((member) => {
+    html += `
+      <div style="
+        background:white;
+        border-radius:18px;
+        padding:14px;
+        margin-bottom:12px;
+        box-shadow:0 6px 16px rgba(214,51,132,0.12);
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+      ">
+        <b>${member}</b>
+        <button onclick="deleteMember('${member}')"
+          style="
+            background:#ff4d6d;
+            color:white;
+            border:none;
+            padding:10px 14px;
+            border-radius:12px;
+            font-weight:700;
+          ">
+          Xoá
+        </button>
+      </div>
+    `;
+  });
+
+  popupTitle.innerHTML = "⚙️ Quản lý thành viên";
+  popupImage.style.display = "none";
+  popupMembers.innerHTML = html;
+  flowerPopup.style.display = "flex";
 };
 
 function normalizeText(text) {

@@ -210,6 +210,69 @@ button {
   font-weight: 600;
 }
 
+.menu-btn {
+  position: fixed;
+  top: 20px;
+  left: 16px;
+  width: 52px;
+  height: 52px;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #d63384, #ff5ba7);
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  box-shadow: 0 10px 25px rgba(214, 51, 132, 0.35);
+  z-index: 9999;
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  left: -320px;
+  width: 280px;
+  height: 100%;
+  background: rgba(255,255,255,0.98);
+  backdrop-filter: blur(18px);
+  box-shadow: 8px 0 30px rgba(0,0,0,0.12);
+  transition: left 0.3s ease;
+  z-index: 10000;
+  padding: 24px;
+}
+
+.side-menu.open {
+  left: 0;
+}
+
+.menu-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #d63384;
+  margin-bottom: 24px;
+}
+
+.menu-item {
+  background: linear-gradient(135deg, #ffe6f2, #fff);
+  padding: 16px;
+  border-radius: 18px;
+  margin-bottom: 14px;
+  font-weight: 700;
+  color: #d63384;
+  box-shadow: 0 8px 20px rgba(214,51,132,0.08);
+  cursor: pointer;
+}
+
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: none;
+  z-index: 9998;
+}
+
+.menu-overlay.show {
+  display: block;
+}
 @keyframes popupIn {
   from {
     transform: scale(0.9);
@@ -257,6 +320,21 @@ button {
 </head>
 
 <body>
+
+<button id="menuBtn" class="menu-btn">☰</button>
+<div id="menuOverlay" class="menu-overlay" onclick="closeMenu()"></div>
+
+<div id="sideMenu" class="side-menu">
+  <div class="menu-title">🌸 Menu</div>
+
+  <div class="menu-item" onclick="showAllMembers()">
+    👥 Tất cả thành viên
+  </div>
+
+  <div class="menu-item" onclick="manageMembers()">
+    ⚙️ Quản lý thành viên
+  </div>
+</div>
 
 <h1>🌸 Flower Hội 🌸</h1>
 
@@ -362,10 +440,36 @@ const popupTitle = document.getElementById("popupTitle");
 const popupMembers = document.getElementById("popupMembers");
 const categoryPopup = document.getElementById("categoryPopup");
 
+const menuBtn = document.getElementById("menuBtn");
+
+const sideMenu = document.getElementById("sideMenu");
+
+const menuOverlay = document.getElementById("menuOver
+  
 let currentUser = localStorage.getItem("flowerUser");
 let selectedFlowerName = null;
 let allDocs = [];
 let savedScrollY = 0;
+
+menuBtn.onclick = function() {
+  sideMenu.classList.add("open");
+  menuOverlay.classList.add("show");
+};
+
+window.closeMenu = function() {
+  sideMenu.classList.remove("open");
+  menuOverlay.classList.remove("show");
+};
+
+window.showAllMembers = function() {
+  closeMenu();
+  alert("Sắp thêm danh sách tất cả thành viên 🌸");
+};
+
+window.manageMembers = function() {
+  closeMenu();
+  alert("Sắp thêm quản lý thành viên ⚙️");
+};
 
 function normalizeText(text) {
   return (text || "")

@@ -498,40 +498,25 @@ window.manageMembers = async function() {
     (data.members || []).forEach(member => membersSet.add(member));
   });
 
-  let html = "<h2 style='color:#d63384'>⚙️ Quản lý thành viên</h2>";
+  const name = prompt(
+    "Nhập tên thành viên cần xoá:\n\n" +
+    Array.from(membersSet).sort().join("\n")
+  );
 
-  Array.from(membersSet).sort().forEach((member) => {
-    html += `
-      <div style="
-        background:white;
-        border-radius:18px;
-        padding:14px;
-        margin-bottom:12px;
-        box-shadow:0 6px 16px rgba(214,51,132,0.12);
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-      ">
-        <b>${member}</b>
-        <button onclick="deleteMember('${member}')"
-          style="
-            background:#ff4d6d;
-            color:white;
-            border:none;
-            padding:10px 14px;
-            border-radius:12px;
-            font-weight:700;
-          ">
-          Xoá
-        </button>
-      </div>
-    `;
-  });
+  if (!name) return;
 
-  popupTitle.innerHTML = "⚙️ Quản lý thành viên";
-  popupImage.style.display = "none";
-  popupMembers.innerHTML = html;
-  flowerPopup.style.display = "flex";
+  for (const docSnap of snapshot.docs) {
+    const data = docSnap.data();
+
+    if ((data.members || []).includes(name)) {
+      await updateDoc(doc(db, "flowers", docSnap.id), {
+        members: arrayRemove(name)
+      });
+    }
+  }
+
+  alert("Đã xoá thành viên");
+  loadFlowers();
 };
 
 function normalizeText(text) {

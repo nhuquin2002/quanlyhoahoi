@@ -459,66 +459,95 @@ window.closeMenu = function() {
   menuOverlay.classList.remove("show");
 };
 
-window.showAllMembers = async function() {
+window.showAllMembers = function() {
   closeMenu();
 
-  const snapshot = await getDocs(collection(db, "flowers"));
-  let membersMap = new Map();
+  let memberMap = new Map();
 
-  snapshot.forEach((docSnap) => {
+  allDocs.forEach(docSnap => {
     const data = docSnap.data();
 
-    if (!data.members || !data.name) return;
-
-    data.members.forEach((member) => {
-      if (!membersMap.has(member)) {
-        membersMap.set(member, []);
+    (data.members || []).forEach(member => {
+      if (!memberMap.has(member)) {
+        memberMap.set(member, []);
       }
 
-      membersMap.get(member).push({
+      memberMap.get(member).push({
         name: data.name,
         image: data.image
       });
     });
   });
 
-  popupTitle.innerHTML = "👥 Tất cả thành viên";
-  popupImage.style.display = "none";
-
   let html = "";
 
-  Array.from(membersMap.keys()).sort().forEach((member) => {
+  memberMap.forEach((flowers, member) => {
     html += `
       <div onclick="showMemberFlowers('${member}')"
-        style="
-          background:white;
-          border-radius:18px;
-          padding:16px;
-          margin-bottom:12px;
-          box-shadow:0 6px 16px rgba(214,51,132,0.12);
-          cursor:pointer;
-          font-weight:700;
-          color:#d63384;
-          font-size:18px;
-        ">
+      style="
+        background:white;
+        padding:18px;
+        border-radius:20px;
+        margin-bottom:14px;
+        font-weight:700;
+        color:#d63384;
+        cursor:pointer;
+        box-shadow:0 8px 20px rgba(214,51,132,0.08);
+      ">
         👤 ${member}
       </div>
     `;
   });
 
-  popupMembers.innerHTML = `
-    <div style="max-height:55vh; overflow-y:auto;">
+  const oldPopup = document.getElementById("memberListPopup");
+  if (oldPopup) oldPopup.remove();
+
+  const popup = document.createElement("div");
+  popup.id = "memberListPopup";
+
+  popup.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 30000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  popup.innerHTML = `
+    <div style="
+      background:white;
+      width:100%;
+      max-width:420px;
+      max-height:80vh;
+      overflow:auto;
+      border-radius:28px;
+      padding:20px;
+    ">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:16px;
+      ">
+        <h2 style="margin:0;color:#d63384;">👥 Tất cả thành viên</h2>
+        <button onclick="document.getElementById('memberListPopup').remove()"
+        style="border:none;background:none;font-size:30px;">×</button>
+      </div>
+
       ${html}
     </div>
   `;
 
-  flowerPopup.style.display = "flex";
+  document.body.appendChild(popup);
 };
-window.showMemberFlowers = async function(memberName) {
-  const snapshot = await getDocs(collection(db, "flowers"));
+
+window.showMemberFlowers = function(memberName) {
   let flowers = [];
 
-  snapshot.forEach((docSnap) => {
+  allDocs.forEach(docSnap => {
     const data = docSnap.data();
 
     if ((data.members || []).includes(memberName)) {
@@ -529,40 +558,30 @@ window.showMemberFlowers = async function(memberName) {
     }
   });
 
-  popupTitle.innerHTML = `🌸 ${memberName}`;
-  popupImage.style.display = "none";
+  let html = "";
 
-  let html = `
-    <div style="
-      display:grid;
-      grid-template-columns:repeat(2, 1fr);
-      gap:12px;
-      max-height:55vh;
-      overflow-y:auto;
-    ">
-  `;
-
-  flowers.forEach((flower) => {
+  flowers.forEach(flower => {
     html += `
       <div style="
         background:white;
-        border-radius:18px;
+        border-radius:20px;
         padding:12px;
-        text-align:center;
-        box-shadow:0 6px 16px rgba(214,51,132,0.12);
+        margin-bottom:14px;
+        display:flex;
+        align-items:center;
+        gap:12px;
+        box-shadow:0 8px 20px rgba(214,51,132,0.08);
       ">
-        <img src="${flower.image}"
-          style="
-            width:80px;
-            height:80px;
-            object-fit:cover;
-            border-radius:14px;
-            margin-bottom:8px;
-          ">
+        <img src="${flower.image}" style="
+          width:60px;
+          height:60px;
+          object-fit:cover;
+          border-radius:16px;
+        ">
         <div style="
-          font-size:14px;
           font-weight:700;
           color:#d63384;
+          font-size:16px;
         ">
           ${flower.name}
         </div>
@@ -570,9 +589,49 @@ window.showMemberFlowers = async function(memberName) {
     `;
   });
 
-  html += `</div>`;
+  const oldPopup = document.getElementById("memberFlowerPopup");
+  if (oldPopup) oldPopup.remove();
 
-  popupMembers.innerHTML = html;
+  const popup = document.createElement("div");
+  popup.id = "memberFlowerPopup";
+
+  popup.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 31000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  `;
+
+  popup.innerHTML = `
+    <div style="
+      background:white;
+      width:100%;
+      max-width:420px;
+      max-height:80vh;
+      overflow:auto;
+      border-radius:28px;
+      padding:20px;
+    ">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:16px;
+      ">
+        <h2 style="margin:0;color:#d63384;">🌸 ${memberName}</h2>
+        <button onclick="document.getElementById('memberFlowerPopup').remove()"
+        style="border:none;background:none;font-size:30px;">×</button>
+      </div>
+
+      ${html}
+    </div>
+  `;
+
+  document.body.appendChild(popup);
 };
 
 window.manageMembers = async function() {

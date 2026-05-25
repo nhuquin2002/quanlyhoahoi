@@ -474,17 +474,105 @@ window.showAllMembers = async function() {
       if (!membersMap.has(member)) {
         membersMap.set(member, []);
       }
-      membersMap.get(member).push(data.name);
+
+      membersMap.get(member).push({
+        name: data.name,
+        image: data.image
+      });
     });
   });
 
-  let html = "👥 TẤT CẢ THÀNH VIÊN\n\n";
+  popupTitle.innerHTML = "👥 Tất cả thành viên";
+  popupImage.style.display = "none";
 
-  membersMap.forEach((flowers, member) => {
-    html += `${member}\n🌸 ${flowers.join(", ")}\n\n`;
+  let html = "";
+
+  Array.from(membersMap.keys()).sort().forEach((member) => {
+    html += `
+      <div onclick="showMemberFlowers('${member}')"
+        style="
+          background:white;
+          border-radius:18px;
+          padding:16px;
+          margin-bottom:12px;
+          box-shadow:0 6px 16px rgba(214,51,132,0.12);
+          cursor:pointer;
+          font-weight:700;
+          color:#d63384;
+          font-size:18px;
+        ">
+        👤 ${member}
+      </div>
+    `;
   });
 
-  alert(html);
+  popupMembers.innerHTML = `
+    <div style="max-height:55vh; overflow-y:auto;">
+      ${html}
+    </div>
+  `;
+
+  flowerPopup.style.display = "flex";
+};
+window.showMemberFlowers = async function(memberName) {
+  const snapshot = await getDocs(collection(db, "flowers"));
+  let flowers = [];
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    if ((data.members || []).includes(memberName)) {
+      flowers.push({
+        name: data.name,
+        image: data.image
+      });
+    }
+  });
+
+  popupTitle.innerHTML = `🌸 ${memberName}`;
+  popupImage.style.display = "none";
+
+  let html = `
+    <div style="
+      display:grid;
+      grid-template-columns:repeat(2, 1fr);
+      gap:12px;
+      max-height:55vh;
+      overflow-y:auto;
+    ">
+  `;
+
+  flowers.forEach((flower) => {
+    html += `
+      <div style="
+        background:white;
+        border-radius:18px;
+        padding:12px;
+        text-align:center;
+        box-shadow:0 6px 16px rgba(214,51,132,0.12);
+      ">
+        <img src="${flower.image}"
+          style="
+            width:80px;
+            height:80px;
+            object-fit:cover;
+            border-radius:14px;
+            margin-bottom:8px;
+          ">
+        <div style="
+          font-size:14px;
+          font-weight:700;
+          color:#d63384;
+        ">
+          ${flower.name}
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  popupMembers.innerHTML = html;
 };
 
 window.manageMembers = async function() {

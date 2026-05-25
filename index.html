@@ -42,15 +42,15 @@ select {
 
 button {
   width: 100%;
-  padding: 15px;
+  padding: 14px;
   margin-top: 10px;
-  border-radius: 18px;
+  border-radius: 16px;
   border: none;
-  background: linear-gradient(135deg, #d63384, #ff5ba6);
+  background: linear-gradient(135deg, #d63384, #ff6bb3);
   color: white;
-  font-size: 17px;
-  font-weight: 700;
-  box-shadow: 0 8px 20px rgba(214, 51, 132, 0.25);
+  font-size: 16px;
+  font-weight: 800;
+  box-shadow: 0 8px 18px rgba(214, 51, 132, 0.2);
 }
 
 .dashboard {
@@ -114,6 +114,14 @@ button {
   line-height: 1.25;
 }
 
+.flower-count {
+  text-align: center;
+  font-size: 12px;
+  color: #777;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
 .category-title {
   font-size: 20px;
   font-weight: 800;
@@ -149,31 +157,35 @@ button {
 }
 
 .popup-box {
-  background: rgba(255,255,255,0.98);
+  background: linear-gradient(180deg, #ffffff 0%, #fff3fa 100%);
   width: 100%;
   max-width: 390px;
   max-height: 85vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 28px;
-  padding: 20px;
+  padding: 18px;
   position: relative;
   animation: popupIn 0.25s ease;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+  box-shadow: 0 20px 60px rgba(214, 51, 132, 0.25);
+  border: 2px solid rgba(255,255,255,0.8);
 }
 
 .popup-box img {
   width: 100%;
   border-radius: 20px;
-  max-height: 240px;
+  max-height: 250px;
   object-fit: cover;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.12);
 }
 
 .popup-box h2 {
   text-align: center;
   color: #d63384;
   margin-top: 14px;
-  font-size: 22px;
+  font-size: 24px;
+  font-weight: 900;
+  text-shadow: 0 2px 8px rgba(214, 51, 132, 0.15);
 }
 
 .close-btn {
@@ -186,12 +198,16 @@ button {
 }
 
 #popupMembers {
-  margin-top: 14px;
+  margin-top: 16px;
   line-height: 1.8;
   color: #444;
   text-align: center;
   max-height: 180px;
   overflow-y: auto;
+  background: rgba(255,255,255,0.8);
+  border-radius: 16px;
+  padding: 12px;
+  font-weight: 600;
 }
 
 @keyframes popupIn {
@@ -301,6 +317,8 @@ button {
     <button onclick="joinCurrentFlower()">🌸 Tôi có hoa này</button>
     <button onclick="changeFlowerCategory()">✏️ Chọn phẩm</button>
     <button onclick="leaveCurrentFlower()">❌ Xóa tên tôi</button>
+    <button onclick="renameFlower()">✏️ Sửa tên hoa</button>
+    <button onclick="deleteFlower()">🗑️ Xóa hoa</button>
 
     <div id="popupMembers"></div>
   </div>
@@ -315,6 +333,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  deleteDoc,
   arrayUnion,
   arrayRemove
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -604,6 +623,44 @@ window.setFlowerCategory = async function(category) {
   loadFlowers();
 };
 
+window.renameFlower = async function() {
+  const newName = prompt("Tên hoa mới:");
+
+  if (!newName) return;
+
+  const docsToUpdate = allDocs.filter(d => {
+    const name = normalizeText(d.data().name);
+    return name === selectedFlowerName;
+  });
+
+  for (const d of docsToUpdate) {
+    await updateDoc(doc(db, "flowers", d.id), {
+      name: newName
+    });
+  }
+
+  closePopup();
+  loadFlowers();
+};
+
+window.deleteFlower = async function() {
+  const ok = confirm("Xóa hoa này?");
+
+  if (!ok) return;
+
+  const docsToDelete = allDocs.filter(d => {
+    const name = normalizeText(d.data().name);
+    return name === selectedFlowerName;
+  });
+
+  for (const d of docsToDelete) {
+    await deleteDoc(doc(db, "flowers", d.id));
+  }
+
+  closePopup();
+  loadFlowers();
+};
+
 window.leaveCurrentFlower = async function() {
   const docsToUpdate = allDocs.filter(d => {
     const name = normalizeText(d.data().name);
@@ -723,9 +780,10 @@ categoryOrder.forEach((category) => {
       });
 
     div.innerHTML = `
-      <img src="${flower.image}">
-      <h3>${flower.name}</h3>
-    `;
+  <img src="${flower.image}">
+  <h3>${flower.name}</h3>
+  <div class="flower-count">👥 ${flower.members.size}</div>
+`;
 
     categoryGrid.appendChild(div);
   });

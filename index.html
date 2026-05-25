@@ -347,6 +347,15 @@ let currentUser = localStorage.getItem("flowerUser");
 let selectedFlowerName = null;
 let allDocs = [];
 
+function normalizeText(text) {
+  return (text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
 if (!currentUser) {
   currentUser = prompt("Nhập tên hội viên:");
   if (currentUser) {
@@ -474,10 +483,7 @@ window.openFlowerList = async function() {
 
     if (!data.name) return;
 
-    const cleanName = data.name
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, " ");
+    const cleanName = normalizeText(data.name);
 
     if (!uniqueFlowers.has(cleanName)) {
       uniqueFlowers.set(cleanName, {
@@ -600,11 +606,7 @@ window.setFlowerCategory = async function(category) {
 
 window.leaveCurrentFlower = async function() {
   const docsToUpdate = allDocs.filter(d => {
-    const name = d.data().name
-      ?.toLowerCase()
-      .trim()
-      .replace(/\s+/g, " ");
-
+    const name = normalizeText(d.data().name);
     return name === selectedFlowerName;
   });
 
@@ -621,10 +623,7 @@ window.leaveCurrentFlower = async function() {
 async function loadFlowers() {
   flowers.innerHTML = "";
 
-  const search = searchInput.value
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, " ");
+  const cleanName = normalizeText(data.name);
 
   const snapshot = await getDocs(collection(db, "flowers"));
   allDocs = snapshot.docs;

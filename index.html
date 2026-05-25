@@ -606,24 +606,6 @@ window.showMemberFlowers = function(memberName) {
   🌸 ${memberName}
 </div>
 
-      <button onclick="popup.remove(); event.stopPropagation();" style="
-  position:absolute;
-  top:12px;
-  right:12px;
-  width:48px;
-  height:48px;
-  border:none;
-  background:transparent;
-  font-size:34px;
-  font-weight:700;
-  color:#999;
-  z-index:9999999;
-  cursor:pointer;
-  -webkit-appearance:none;
-  appearance:none;
-  touch-action:manipulation;
-">×</button>
-
       ${flowers.map(f => `
         <div style="
           display:flex;
@@ -654,6 +636,34 @@ window.showMemberFlowers = function(memberName) {
   `;
 
   document.body.appendChild(popup);
+  
+  const closeBtn = document.createElement("button");
+closeBtn.innerHTML = "×";
+closeBtn.style.position = "fixed";
+closeBtn.style.top = "90px";
+closeBtn.style.right = "28px";
+closeBtn.style.width = "50px";
+closeBtn.style.height = "50px";
+closeBtn.style.border = "none";
+closeBtn.style.background = "transparent";
+closeBtn.style.fontSize = "38px";
+closeBtn.style.fontWeight = "700";
+closeBtn.style.color = "#999";
+closeBtn.style.zIndex = "999999999";
+
+closeBtn.onclick = function(e) {
+  e.stopPropagation();
+  popup.remove();
+  closeBtn.remove();
+};
+
+document.body.appendChild(closeBtn);
+
+popup.onclick = function(e) {
+  if (e.target === popup) {
+    popup.remove();
+    closeBtn.remove();
+  }
 };
 
 window.manageMembers = async function() {

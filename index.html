@@ -467,42 +467,24 @@ window.showAllMembers = async function() {
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
+
     if (!data.members || !data.name) return;
 
     data.members.forEach((member) => {
       if (!membersMap.has(member)) {
         membersMap.set(member, []);
       }
-
       membersMap.get(member).push(data.name);
     });
   });
 
-  let html = "<h2 style='color:#d63384'>👥 Tất cả thành viên</h2>";
+  let html = "👥 TẤT CẢ THÀNH VIÊN\n\n";
 
   membersMap.forEach((flowers, member) => {
-    html += `
-      <div style="
-        background:white;
-        border-radius:18px;
-        padding:14px;
-        margin-bottom:12px;
-        box-shadow:0 6px 16px rgba(214,51,132,0.12);
-      ">
-        <b>${member}</b><br>
-        🌸 ${flowers.join(", ")}
-      </div>
-    `;
+    html += `${member}\n🌸 ${flowers.join(", ")}\n\n`;
   });
 
-  flowerPopup.innerHTML = `
-    <div class="popup-content" style="max-height:80vh;overflow:auto">
-      ${html}
-      <button onclick="closePopup()">Đóng</button>
-    </div>
-  `;
-
-  flowerPopup.style.display = "flex";
+  alert(html);
 };
 
 window.manageMembers = async function() {

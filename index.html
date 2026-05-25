@@ -592,7 +592,7 @@ window.joinCurrentFlower = async function() {
   }
 
   closePopup();
-  loadFlowers();
+  await loadFlowersSilently();
 };
 
 window.changeFlowerCategory = function() {
@@ -621,7 +621,7 @@ window.setFlowerCategory = async function(category) {
 
   closeCategoryPopup();
   closePopup();
-  loadFlowers();
+  await loadFlowersSilently();
 };
 
 window.renameFlower = async function() {
@@ -641,7 +641,7 @@ window.renameFlower = async function() {
   }
 
   closePopup();
-  loadFlowers();
+  await loadFlowersSilently();
 };
 
 window.deleteFlower = async function() {
@@ -659,7 +659,7 @@ window.deleteFlower = async function() {
   }
 
   closePopup();
-  loadFlowers();
+  await loadFlowersSilently();
 };
 
 window.leaveCurrentFlower = async function() {
@@ -674,9 +674,8 @@ window.leaveCurrentFlower = async function() {
     });
   }
 
-  savedScrollY = window.scrollY;
   closePopup();
-  loadFlowers();
+  await loadFlowersSilently();
 };
 
 async function loadFlowers() {
@@ -791,15 +790,12 @@ categoryOrder.forEach((category) => {
 });
 
 totalMembers.textContent = allMembers.size;
+}
 
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    window.scrollTo({
-      top: savedScrollY,
-      behavior: "auto"
-    });
-  });
-});
+async function loadFlowersSilently() {
+  const currentY = window.scrollY;
+  await loadFlowers();
+  window.scrollTo(0, currentY);
 }
 
 let touchStartY = 0;
